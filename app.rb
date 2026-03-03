@@ -29,7 +29,7 @@ helpers do
 
   def protected!
     return if authorized?
-    halt 401, { error: "Not authorized" }.to_json
+    halt 401, { error: "Not Authorized" }.to_json
   end
 end
 
@@ -59,12 +59,14 @@ post "/webhook/actblue_donation" do
   protected!
   payload = JSON.parse(request.body.read) rescue nil
 
-  halt 400, { error: "Invalid payload" } unless payload
+  halt 400, { error: "Invalid payload" }.to_json unless payload
   #puts payload.inspect
 
-  donor = payload["donor"] || {}
-  contribution = payload["contribution"] || {}
-  line_item = payload["lineitems"][0] || {}
+  donor = payload["donor"]
+  contribution = payload["contribution"]
+  line_item = payload["lineitems"][0]
+
+  halt 400, { error: "Invalid payload" }.to_json unless donor and contribution and line_item
 
   idempotency_key = ActBlue.idempotency_key(contribution["orderNumber"], line_item["paidAt"], line_item["lineitemId"])
 
